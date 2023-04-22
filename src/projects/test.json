@@ -1,0 +1,103 @@
+{
+  "name": "Test",
+  "pathPrefix": "/test",
+  "projectVariables": [
+    {
+      "host": "https://webhook-host.com"
+    }
+  ],
+  "operations": [
+    {
+      "request": {
+        "route": "/accounts",
+        "method": "post",
+        "parses": [
+          {
+            "name": "accountId",
+            "path": "body.accountId"
+          },
+          {
+            "name": "accountId",
+            "path": "body.accountName"
+          }
+        ]
+      },
+      "requestTaskGroups": [
+        {
+          "type": "chain",
+          "tasks": [
+            {
+              "type": "entry",
+              "resource": "accounts",
+              "operator": "create",
+              "parses": [
+                {
+                  "var": "account",
+                  "path": "entry.accountId"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "responses": [
+        {
+          "body": {
+            "type": "template",
+            "value": "{{stringify account}}"
+          },
+          "status": 200
+        }
+      ],
+      "operationTaskGroups": [
+        {
+          "type": "chain",
+          "delay": 0,
+          "tasks": [
+            {
+              "type": "httpRequest",
+              "host": null,
+              "route": "/webhook/integration",
+              "method": "get",
+              "body": {
+                "type": "template",
+                "value": "{{stringify account}}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "request": {
+        "route": "/accounts/{accountId}",
+        "method": "get",
+        "parses": [
+          {
+            "name": "debtorIban",
+            "path": "query.iban",
+            "sample": {
+              "type": "faker.datatype.uuid",
+              "args": []
+            }
+          },
+          {
+            "name": "outTransactionId",
+            "path": "path.accountId"
+          }
+        ]
+      },
+      "requestTaskGroups": [],
+      "responses": [
+        {
+          "body": {
+            "type": "template",
+            "value": "{{debtorIban}}"
+          },
+          "status": 200
+        }
+      ],
+      "operationTaskGroups": []
+    }
+  ]
+}
